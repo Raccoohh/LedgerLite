@@ -57,3 +57,38 @@
   no matches. Git used the existing Raccoohh credential without exposing it.
 - GitHub Actions run 38283426668 passed lint, formatting, migrations and all 84 tests.
 - Updated delivery documentation and added the CI badge and clone instructions.
+
+## 2026-10-13 - independent audit fixes (local only)
+- Read the complete supplied REPORT.md and both independent test scripts. Starting HEAD
+  bad674b had a clean working tree. No source changes from the audit were present.
+- Reproduced all three reported failures before editing: offset overflow -> 500,
+  31 malformed JSON requests -> 422 without quota use, signed NUL event ID -> 500.
+- F-01: bounded offset to PostgreSQL signed bigint. F-02: a scoped APIRoute authenticates
+  and counts once before body parsing; dependencies reuse the account ID and webhooks
+  stay on the ordinary router. F-03: field validators reject NUL in both webhook IDs.
+- Added tests/test_audit_regressions.py with 18 cases; retained all 84 original tests.
+  Both source-mounted and rebuilt-image suites passed 102 tests. The original independent
+  pytest file passed all 35 checks without modification. Each suite has one existing
+  Starlette/HTTPX deprecation warning, no failures.
+- Standard Compose test command passed migrations, drift check, lint and formatting.
+  Created ledgerlite-final-verification with a new tmpfs PostgreSQL and no published
+  ports; initial migrations, health checks and HTTP smoke passed. Both pytest suites
+  also passed there: 102 in 4.00s and 35 in 2.00s, exit 0.
+- Preserved original live_audit.py (it asserts the old broken behavior). Ran a separate
+  copy with required expected statuses and extra invoice-NUL/state checks. Real HTTP
+  confirmed 30 malformed 422 responses, then 429/Retry-After, webhook exemption,
+  offset/NUL -> 422, successful valid retry, concurrent transfers and duplicate callbacks.
+  All five audit account balances matched history deltas.
+- Security review: financial services/locks and schema unchanged; validation precedes
+  PostgreSQL processing; API key remains documented in OpenAPI. Scan covered five
+  reachable commits, 54 distinct blobs and 42 current files for .env, exact generated
+  secret values and common credential patterns: no matches (not an exhaustive guarantee).
+- Developer confirmed personal contribution: supplied requirements, supervised AI work,
+  initiated separate Astra High review, selected the three fixes and minimal scope;
+  did not write code or manually run technical tests; personal time was not tracked.
+  Rewrote AI_NOTES with those facts and the three reproduced/fixed examples.
+- README and ACCEPTANCE distinguish current local verification from hosted pre-fix CI.
+  No push is authorized for this fix session; hosted CI must run after a later approved push.
+- Rebuilt and restarted only the main wallet service; health and OpenAPI checks passed.
+  Existing provider state and the main database were preserved. Removed the temporary
+  ledgerlite-final-verification stack after its successful checks.

@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, Query, Request
+from fastapi import APIRouter, Depends, FastAPI, Header, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
@@ -24,7 +25,7 @@ install_errors(app)
 DB = Annotated[Session, Depends(session)]
 
 
-def authenticate(request: Request, x_api_key: Annotated[str, Header()] = "") -> str:
+def authenticate(request: Request, x_api_key: str) -> str:
     with Session(engine()) as db, db.begin():
         account_id = db.scalar(
             select(Account.id).where(Account.api_key_hash == key_hash(x_api_key))
@@ -36,7 +37,27 @@ def authenticate(request: Request, x_api_key: Annotated[str, Header()] = "") -> 
         return account_id
 
 
-User = Annotated[str, Depends(authenticate)]
+class AuthenticatedRoute(APIRoute):
+    def get_route_handler(self):
+        handler = super().get_route_handler()
+
+        async def authenticated_handler(request: Request) -> Response:
+            # Authenticate/count exactly once, before FastAPI parses even malformed JSON.
+            request.state.account_id = await run_in_threadpool(
+                authenticate, request, request.headers.get("X-API-Key", "")
+            )
+            return await handler(request)
+
+        return authenticated_handler
+
+
+def current_account(request: Request, x_api_key: Annotated[str, Header()] = "") -> str:
+    # Keep the API-key header in OpenAPI; the route has already authenticated it.
+    return request.state.account_id
+
+
+wallet_routes = APIRouter(route_class=AuthenticatedRoute)
+User = Annotated[str, Depends(current_account)]
 Provider = Annotated[ProviderClient, Depends(ProviderClient)]
 
 
@@ -46,7 +67,7 @@ def health(db: DB):
     return {"status": "ok"}
 
 
-@app.get("/v1/accounts/me")
+@wallet_routes.get("/v1/accounts/me")
 def me(account_id: User, db: DB):
     account = db.get(Account, account_id)
     return {
@@ -57,7 +78,7 @@ def me(account_id: User, db: DB):
     }
 
 
-@app.post("/v1/deposits", status_code=201)
+@wallet_routes.post("/v1/deposits", status_code=201)
 def create_deposit(body: DepositRequest, account_id: User, db: DB, provider: Provider):
     deposit_id = new_id()
     invoice = provider.create(deposit_id, money_string(body.amount))
@@ -101,7 +122,7 @@ async def webhook(request: Request):
     return {"status": "accepted", "applied": changed}
 
 
-@app.post("/v1/transfers")
+@wallet_routes.post("/v1/transfers")
 def create_transfer(
     body: TransferRequest,
     account_id: User,
@@ -113,18 +134,18 @@ def create_transfer(
     return JSONResponse(response, status)
 
 
-@app.post("/v1/purchases", status_code=201)
+@wallet_routes.post("/v1/purchases", status_code=201)
 def create_purchase(body: PurchaseRequest, account_id: User, db: DB):
     with db.begin():
         return purchase(db, account_id, body.credits)
 
 
-@app.get("/v1/transactions")
+@wallet_routes.get("/v1/transactions")
 def transactions(
     account_id: User,
     db: DB,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    offset: Annotated[int, Query(ge=0, le=2**63 - 1)] = 0,
 ):
     query = select(Transaction).where(Transaction.account_id == account_id)
     rows = db.scalars(
@@ -151,3 +172,7 @@ def transactions(
         "offset": offset,
         "total": total,
     }
+
+
+# Health and provider webhooks intentionally use the ordinary, unauthenticated router.
+app.include_router(wallet_routes)

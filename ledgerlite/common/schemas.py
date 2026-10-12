@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 
 from ledgerlite.common.money import Money
 
@@ -17,3 +17,10 @@ class Webhook(StrictModel):
     status: FinalStatus
     paid_amount: Money = Field(ge=0)
     occurred_at: AwareDatetime
+
+    @field_validator("event_id", "invoice_id")
+    @classmethod
+    def reject_nul(cls, value: str) -> str:
+        if "\x00" in value:
+            raise ValueError("Webhook identifiers must not contain NUL characters")
+        return value

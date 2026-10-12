@@ -1,37 +1,35 @@
 # AI usage notes
 
-**Tools and ownership.** OpenAI Codex in the desktop app read the four-page assignment,
-implemented the Python services, migrations, tests, Compose/CI and documentation, and ran
-Ruff, pytest and real Docker/HTTP checks. PDF extraction/rendering and terminal tools were
-used; no external AI API was called by the application. No subagents were used.
+**AI work.** The developer identifies ChatGPT Astra High as the tool used for implementation
+and a separate Senior Code Review chat. AI produced the services, tests and documentation.
+This Codex workspace session reproduced and fixed the review findings using terminal,
+Docker/PostgreSQL, pytest and Ruff. The application itself calls no AI API.
 
-**Human decisions.** The user supplied the assignment and detailed engineering brief,
-selected the LedgerLite workspace, made Docker/VS Code available, and initially required
-local work, then explicitly approved public GitHub publication. Implementation choices were
-made by Codex. No claim
-is made that a human independently designed or reviewed those choices. The submitter
-should add their own actual review decisions before delivery.
+**Human contribution.** The developer supplied the assignment, organized AI-assisted work,
+reviewed results and monitored completion. They initiated the independent review, read its
+findings, and chose to fix F-01/F-02/F-03 while avoiding unnecessary refactoring. They
+confirmed they did not write code or manually run technical tests. No additional technical
+choices or manual validation are attributed to them.
 
-**Real mistakes and corrections.**
+**Independent audit and three actual AI-code mistakes.** The supplied report recorded
+84 original tests passing and 32/35 independent checks passing. All three failures were
+reproduced before correction:
 
-1. The initial transfer code inserted an idempotency row (taking an account FK KEY SHARE
-   lock), then used FOR UPDATE for balances. The PostgreSQL concurrent-spending test failed
-   with a deadlock. Ordered FOR NO KEY UPDATE locks fixed the conflict while preserving
-   exclusive balance mutation; overspending and opposite-direction tests passed.
-2. String-based hmac.compare_digest raised TypeError on non-ASCII signature input,
-   potentially returning 500 instead of 401. Code review identified it and a regression
-   test demonstrated the failure against the original image. Both authentication
-   comparisons now use bytes; the regression passes.
-3. The initial container could import the installed package instead of newly mounted
-   source during pytest. Tracebacks revealed stale code despite the local signature fix.
-   Explicit PYTHONPATH and pytest source-path configuration fixed the test environment;
-   the final standard image was rebuilt and tested without source mounts.
-4. After adding the reconciliation race test, two imports previously removed as unused
-   were missing. Ruff and pytest caught the NameError; imports were restored and the
-   complete suite rerun. No failing tests were removed to obtain a green result.
+1. **F-01:** An unbounded history offset exceeded PostgreSQL bigint and returned 500.
+   Added an upper bound of 9223372036854775807. Boundary/overflow tests now return 200/422
+   as appropriate; the HTTP probe returns 422.
+2. **F-02:** Authentication-dependent rate counting ran after JSON parsing, so malformed
+   bodies bypassed the limiter. A wallet route wrapper now authenticates/counts once before
+   parsing; the existing account dependency reuses that result. Tests and HTTP confirm
+   30 malformed requests return 422, then 429 with Retry-After; webhooks remain exempt.
+3. **F-03:** NUL in signed webhook identifiers reached PostgreSQL and returned 500.
+   Both IDs now reject NUL during validation. Tests and HTTP confirm 422, unchanged
+   financial state and a successful valid retry; no UUID-only restriction was added.
 
-**Time and limits.** Approximately 20-25 minutes of agent execution, including document
-review, setup, implementation and verification on 12 October 2026. Human time was not
-measured. The first recorded setup timestamp was 19:15 EEST. Subsequent publication and CI
-verification were separate follow-up work. The public repository and hosted GitHub Actions
-have now been verified; all 84 tests passed on GitHub.
+**Verification.** All 84 original tests plus 18 new regressions pass (102 total); all 35
+independent checks pass. Fresh Compose/PostgreSQL, migrations, Ruff and real HTTP checks
+also pass. Hosted CI for these local fixes awaits an authorized push.
+
+**Time.** The developer did not track personal time. Earlier session notes estimated
+20-25 minutes for the initial agent implementation; that excludes publication, independent
+review and this fix session. No reliable end-to-end duration or human hours are claimed.

@@ -145,6 +145,10 @@ a minus sign. Credits must be positive JSON integers (not booleans or strings), 
 1,000,000,000 per purchase. Self-transfers return 422. Amounts and balances are bounded by
 999999999999.99 USD. Missing/invalid API keys return 401.
 
+History pagination accepts `limit` from 1 to 100 and `offset` from 0 to
+9223372036854775807 (PostgreSQL's signed bigint maximum). Values outside these ranges
+return 422 before a history query is executed.
+
 All API errors use `{"error":{"code":"...","message":"...","details":{}}}`. Invalid
 requests return 422; missing resources 404; business conflicts/insufficient funds 409;
 provider network/HTTP/invalid response errors 502; provider timeouts 504.
@@ -162,6 +166,9 @@ The wallet accepts timestamps within 300 seconds in either direction and uses a 
 signature comparison. Missing, invalid, stale or too-far-future signatures return 401 before
 body parsing. Duplicate event IDs and events for already final deposits return 200 with
 `applied: false`. An unknown invoice returns 404 without consuming the event ID.
+Both webhook identifiers must contain 1-128 characters and no NUL (`\u0000`). A correctly
+signed event with an invalid identifier returns 422 before database processing, without
+changing a balance, deposit, event record or history. No UUID-only format is imposed.
 
 `paid` and `partially_paid` credit actual paid amount less the rounded 1.5% fee;
 `expired` records closure with no credit even if paid_amount is nonzero. Every finalization
@@ -181,9 +188,12 @@ shares the same locked transaction as webhooks, including when they race. The CL
 and privileged; no unauthenticated reconciliation endpoint is exposed.
 
 The rate limiter accepts at most 30 authenticated wallet POST requests in a rolling 60-second
-window per key. Excess requests return 429 and `Retry-After` seconds. Invalid business requests
-and idempotency retries count. GETs and provider webhooks are exempt. PostgreSQL storage and
-account locks coordinate across workers; at most 30 accepted request records remain per account.
+window per key. Authentication and request counting run once, before JSON parsing, on the
+registered wallet routes. Malformed JSON, schema/business errors and idempotency retries
+all count. The 31st request returns 429 and `Retry-After` seconds, even with malformed JSON.
+Invalid/missing keys return 401 and consume no account quota. GETs and provider webhooks
+are exempt. PostgreSQL storage and account locks coordinate across workers; at most 30
+accepted request records remain per account.
 
 ## Verification
 
@@ -192,6 +202,11 @@ Build and run the full isolated test suite, schema drift check and lint:
 ```console
 docker compose --profile test run --build --rm tests
 ```
+
+The post-audit local suite passes **102 tests**: all 84 original tests plus 18 regression
+cases covering offset bounds, malformed-JSON rate limiting and NUL webhook identifiers.
+The supplied independent audit suite also passes all 35 checks. A fresh PostgreSQL Compose
+stack passed migrations, the HTTP smoke and the live audit with corrected expected statuses.
 
 Tests use a separate `postgres-test` database stored in tmpfs, never the demo database.
 The fixtures refuse to truncate databases whose names do not end with `_test`.
@@ -231,8 +246,11 @@ docker compose exec wallet alembic check
 ```
 
 GitHub Actions installs the same locked dependencies, checks Ruff/formatting, upgrades and
-checks migrations, and runs pytest against PostgreSQL 16. The first hosted run passed
-all checks and 84 tests: [verification run](https://github.com/Raccoohh/LedgerLite/actions/runs/38283426668).
+checks migrations, and runs pytest against PostgreSQL 16. The published pre-fix commit
+`bad674b` passed all checks and 84 tests:
+[verification run](https://github.com/Raccoohh/LedgerLite/actions/runs/38283614583).
+The post-audit fixes have been verified locally but have not been pushed; hosted CI for
+those changes is **not yet verified**. The badge above describes the published branch.
 
 ## Engineering decisions and trade-offs
 
@@ -275,6 +293,7 @@ all checks and 84 tests: [verification run](https://github.com/Raccoohh/LedgerLi
   monitoring or a complete double-entry accounting system. Do not expose the mock publicly.
 - The pinned Starlette TestClient emits an upstream HTTPX deprecation warning; tests pass.
 - All mandatory API behavior and both bonuses are implemented. See `ACCEPTANCE.md` for actual
-  verification evidence. The public repository and hosted GitHub Actions run are verified.
-- `AI_NOTES.md` discloses actual AI involvement and observed mistakes; the developer should
-  review it and add only their own real decisions/time before submitting.
+  verification evidence. The public repository still contains the pre-fix version until
+  the locally verified changes are pushed with the developer's approval.
+- `AI_NOTES.md` separates the developer's confirmed contribution, AI implementation and
+  independent audit findings. Personal time was not tracked; no human coding/testing is claimed.
