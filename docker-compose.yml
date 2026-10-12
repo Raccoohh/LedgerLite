@@ -1,0 +1,80 @@
+name: ledgerlite
+x-app: &app
+  build: .
+  environment: &env
+    DATABASE_URL: postgresql+psycopg://ledgerlite:${POSTGRES_PASSWORD:?Run python scripts/setup_env.py}@postgres:5432/ledgerlite
+    PROVIDER_API_KEY: ${PROVIDER_API_KEY:?Run python scripts/setup_env.py}
+    WEBHOOK_SECRET: ${WEBHOOK_SECRET:?Run python scripts/setup_env.py}
+    PROVIDER_TIMEOUT: ${PROVIDER_TIMEOUT:-5}
+    RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+    PROVIDER_URL: http://provider:8001
+    CALLBACK_URL: http://wallet:8000/v1/webhooks/provider
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ledgerlite
+      POSTGRES_DB: ledgerlite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python scripts/setup_env.py}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U ledgerlite -d ledgerlite]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+  migrate:
+    <<: *app
+    command: [alembic, upgrade, head]
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: "no"
+  provider:
+    <<: *app
+    command: [uvicorn, ledgerlite.provider.app:app, --host, 0.0.0.0, --port, "8001"]
+    ports: ["127.0.0.1:8001:8001"]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  wallet:
+    <<: *app
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      provider: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: [test]
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: ephemeral-test-only
+      POSTGRES_DB: ledgerlite_test
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U test -d ledgerlite_test]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  tests:
+    <<: *app
+    profiles: [test]
+    environment:
+      <<: *env
+      DATABASE_URL: postgresql+psycopg://test:ephemeral-test-only@postgres-test:5432/ledgerlite_test
+      RATE_LIMIT_ENABLED: "false"
+    command: [sh, -c, "alembic upgrade head && ruff check . && ruff format --check . && pytest -q"]
+    depends_on:
+      postgres-test: {condition: service_healthy}
+    restart: "no"
+
+volumes:
+  postgres-data:
