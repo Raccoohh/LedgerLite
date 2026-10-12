@@ -71,7 +71,7 @@ services:
       <<: *env
       DATABASE_URL: postgresql+psycopg://test:ephemeral-test-only@postgres-test:5432/ledgerlite_test
       RATE_LIMIT_ENABLED: "false"
-    command: [sh, -c, "alembic upgrade head && ruff check . && ruff format --check . && pytest -q"]
+    command: [sh, -c, "alembic upgrade head && alembic check && ruff check . && ruff format --check . && python -m pytest -q"]
     depends_on:
       postgres-test: {condition: service_healthy}
     restart: "no"

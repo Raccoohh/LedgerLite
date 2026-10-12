@@ -18,4 +18,4 @@ def valid_signature(secret: str, timestamp: str, body: bytes, supplied: str) -> 
         return False
     if abs(time.time() - int(timestamp)) > 300:
         return False
-    return hmac.compare_digest(signature(secret, timestamp, body), supplied)
+    return hmac.compare_digest(signature(secret, timestamp, body).encode(), supplied.encode())

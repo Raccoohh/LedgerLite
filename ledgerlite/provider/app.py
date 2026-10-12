@@ -23,7 +23,9 @@ lock = asyncio.Lock()
 
 
 def authenticate(authorization: Annotated[str, Header()] = ""):
-    if not hmac.compare_digest(authorization, "Bearer " + settings().provider_api_key):
+    if not hmac.compare_digest(
+        authorization.encode(), ("Bearer " + settings().provider_api_key).encode()
+    ):
         raise APIError(401, "unauthorized", "Invalid provider API key")
 
 

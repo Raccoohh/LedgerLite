@@ -20,6 +20,8 @@ include = ["ledgerlite*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-p no:cacheprovider"
 
 [tool.ruff]
 line-length = 100

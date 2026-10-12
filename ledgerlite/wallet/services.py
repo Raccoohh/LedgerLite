@@ -54,7 +54,9 @@ def settle(
         ).scalar_one_or_none()
         if inserted is None:
             return False
-    deposit = db.scalar(select(Deposit).where(Deposit.invoice_id == invoice_id).with_for_update())
+    deposit = db.scalar(
+        select(Deposit).where(Deposit.invoice_id == invoice_id).with_for_update(key_share=True)
+    )
     if deposit is None:
         raise APIError(404, "deposit_not_found", "Deposit not found; retry delivery later")
     if deposit.status != "pending":
@@ -67,7 +69,9 @@ def settle(
         return True
     fee = provider_fee(paid_amount)
     credited = paid_amount - fee
-    account = db.scalar(select(Account).where(Account.id == deposit.account_id).with_for_update())
+    account = db.scalar(
+        select(Account).where(Account.id == deposit.account_id).with_for_update(key_share=True)
+    )
     ensure_capacity(account, credited)
     account.balance += credited
     deposit.fee = fee
@@ -91,13 +95,15 @@ def transfer(db: Session, account_id: str, key: str, body: TransferRequest) -> t
         return record.response, record.status_code
     to_id = str(body.to_account_id)
     # Always lock accounts in the same order, including opposite-direction transfers.
+    # key_share=True with read=False means FOR NO KEY UPDATE on PostgreSQL.
+    # It excludes balance writers but permits FK KEY SHARE locks from new records.
     accounts = {
         a.id: a
         for a in db.scalars(
             select(Account)
             .where(Account.id.in_([account_id, to_id]))
             .order_by(Account.id)
-            .with_for_update()
+            .with_for_update(key_share=True)
         )
     }
     sender, recipient = accounts[account_id], accounts.get(to_id)
@@ -128,7 +134,9 @@ def transfer(db: Session, account_id: str, key: str, body: TransferRequest) -> t
 
 def purchase(db: Session, account_id: str, credits: int) -> dict:
     price = credit_price(credits)
-    account = db.scalar(select(Account).where(Account.id == account_id).with_for_update())
+    account = db.scalar(
+        select(Account).where(Account.id == account_id).with_for_update(key_share=True)
+    )
     if account.balance < price:
         raise APIError(409, "insufficient_funds", "Insufficient USD balance")
     if account.credits + credits > 9_223_372_036_854_775_807:
@@ -142,7 +150,7 @@ def purchase(db: Session, account_id: str, credits: int) -> dict:
 
 def check_rate_limit(db: Session, account_id: str) -> None:
     # Account lock serializes checks across workers. This transaction commits before business work.
-    db.scalar(select(Account.id).where(Account.id == account_id).with_for_update())
+    db.scalar(select(Account.id).where(Account.id == account_id).with_for_update(key_share=True))
     now = datetime.now(UTC)
     cutoff = now - timedelta(seconds=60)
     db.execute(

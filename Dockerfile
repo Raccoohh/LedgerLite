@@ -1,5 +1,6 @@
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app
+ENV RUFF_CACHE_DIR=/tmp/ruff-cache
 WORKDIR /app
 COPY requirements.lock ./
 RUN pip install --no-cache-dir -r requirements.lock
