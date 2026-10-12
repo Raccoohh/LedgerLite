@@ -1,5 +1,7 @@
 # LedgerLite
 
+[![CI](https://github.com/Raccoohh/LedgerLite/actions/workflows/ci.yml/badge.svg)](https://github.com/Raccoohh/LedgerLite/actions/workflows/ci.yml)
+
 Two small Python services for USD deposits, transfers and credit purchases. The provider
 is an in-memory payment simulator; the wallet persists balances and operation history in
 PostgreSQL. Implements all required API operations plus reconciliation and rate limiting.
@@ -10,6 +12,8 @@ Prerequisites: Docker with Compose v2 or newer, Python 3.11+ for the one-time en
 generator, and free localhost ports 8000/8001. Docker Desktop must use Linux containers.
 
 ```console
+git clone https://github.com/Raccoohh/LedgerLite.git
+cd LedgerLite
 python scripts/setup_env.py
 docker compose up --build
 ```
@@ -227,8 +231,8 @@ docker compose exec wallet alembic check
 ```
 
 GitHub Actions installs the same locked dependencies, checks Ruff/formatting, upgrades and
-checks migrations, and runs pytest against PostgreSQL 16. The workflow has been prepared;
-a hosted Actions run requires pushing to your chosen repository.
+checks migrations, and runs pytest against PostgreSQL 16. The first hosted run passed
+all checks and 84 tests: [verification run](https://github.com/Raccoohh/LedgerLite/actions/runs/38283426668).
 
 ## Engineering decisions and trade-offs
 
@@ -271,6 +275,6 @@ a hosted Actions run requires pushing to your chosen repository.
   monitoring or a complete double-entry accounting system. Do not expose the mock publicly.
 - The pinned Starlette TestClient emits an upstream HTTPX deprecation warning; tests pass.
 - All mandatory API behavior and both bonuses are implemented. See `ACCEPTANCE.md` for actual
-  verification evidence. Remote CI and repository access remain to be verified after publication.
+  verification evidence. The public repository and hosted GitHub Actions run are verified.
 - `AI_NOTES.md` discloses actual AI involvement and observed mistakes; the developer should
   review it and add only their own real decisions/time before submitting.

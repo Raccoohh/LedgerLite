@@ -26,12 +26,12 @@ checked using the named evidence; remote hosting claims are explicitly excluded.
 | Compose starts both services and database | PASS | docker compose up --build -d --wait; three services healthy |
 | Environment configuration; no tracked local secrets | PASS | Environment example, random setup script, gitignore and secret-value scan |
 | pytest and lint with PostgreSQL | PASS | Standard image and clean Git archive: 84 passed; Ruff lint/format clean |
-| GitHub Actions configuration | PASS (local equivalent) | Workflow installs lock, lints, migrates and runs PostgreSQL tests |
-| Hosted GitHub Actions execution | NOT VERIFIED | Repository not published; requires the user's chosen remote |
+| GitHub Actions configuration | PASS | Workflow installs lock, lints, migrates and runs PostgreSQL tests |
+| Hosted GitHub Actions execution | PASS | [Run 38283426668](https://github.com/Raccoohh/LedgerLite/actions/runs/38283426668): lint, formatting, migrations and 84 tests |
 | README commands, diagram, decisions, limitations | PASS | Reviewed against successful commands and implementation |
 | AI_NOTES <=1 page, actual mistakes, human role, time | PASS | Concise account of observed errors; no invented human decisions |
 | Unsquashed local commits | PASS | Implementation, tests/fixes and documentation commits |
-| Repository access for reviewers | NOT DONE | Publication explicitly awaits user authorization |
+| Repository access for reviewers | PASS | [Public repository](https://github.com/Raccoohh/LedgerLite), published after explicit user approval |
 | Optional reconciliation | PASS | Old pending polling, concurrent webhook race, lost callback HTTP smoke |
 | Optional 30 POST/min/key; 429 Retry-After; webhook exempt | PASS | Limit, concurrency, per-key isolation, window expiry and exemption tests |
 

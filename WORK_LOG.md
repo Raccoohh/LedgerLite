@@ -48,3 +48,12 @@
   Upgrade -> downgrade -> upgrade, schema drift, Ruff and all 84 tests passed (exit 0).
 - Final running application image passed the HTTP smoke and Alembic drift check again.
 - Verified generated local secret values are absent from tracked files and .env is ignored.
+
+## Authorized GitHub publication
+- User explicitly approved a public repository and confirmed the browser creation step.
+- Created https://github.com/Raccoohh/LedgerLite and pushed all four existing commits
+  without squashing. Verified Public visibility and uploaded files.
+- Scanned all four pre-publication commits for generated local secret values and .env;
+  no matches. Git used the existing Raccoohh credential without exposing it.
+- GitHub Actions run 38283426668 passed lint, formatting, migrations and all 84 tests.
+- Updated delivery documentation and added the CI badge and clone instructions.

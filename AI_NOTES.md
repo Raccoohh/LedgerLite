@@ -6,8 +6,9 @@ Ruff, pytest and real Docker/HTTP checks. PDF extraction/rendering and terminal 
 used; no external AI API was called by the application. No subagents were used.
 
 **Human decisions.** The user supplied the assignment and detailed engineering brief,
-selected the LedgerLite workspace, made Docker/VS Code available, and required local work
-without publishing. Implementation choices in this session were made by Codex. No claim
+selected the LedgerLite workspace, made Docker/VS Code available, and initially required
+local work, then explicitly approved public GitHub publication. Implementation choices were
+made by Codex. No claim
 is made that a human independently designed or reviewed those choices. The submitter
 should add their own actual review decisions before delivery.
 
@@ -31,5 +32,6 @@ should add their own actual review decisions before delivery.
 
 **Time and limits.** Approximately 20-25 minutes of agent execution, including document
 review, setup, implementation and verification on 12 October 2026. Human time was not
-measured. The first recorded setup timestamp was 19:15 EEST. Hosted GitHub Actions and
-reviewer access have not been tested because the repository has not been published.
+measured. The first recorded setup timestamp was 19:15 EEST. Subsequent publication and CI
+verification were separate follow-up work. The public repository and hosted GitHub Actions
+have now been verified; all 84 tests passed on GitHub.
