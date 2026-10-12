@@ -43,3 +43,8 @@
   creation/DB commit gap instead of claiming a distributed transaction.
 - Added English README, requirement audit and truthful AI notes.
 - Local commits retain implementation and test/fix stages. No remote was configured.
+- Exported committed source using git archive, generated separate local configuration,
+  and built it as isolated Compose project ledgerlite-clean with a new PostgreSQL database.
+  Upgrade -> downgrade -> upgrade, schema drift, Ruff and all 84 tests passed (exit 0).
+- Final running application image passed the HTTP smoke and Alembic drift check again.
+- Verified generated local secret values are absent from tracked files and .env is ignored.

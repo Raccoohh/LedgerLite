@@ -22,10 +22,10 @@ checked using the named evidence; remote hosting claims are explicitly excluded.
 | Per-user paginated history | PASS | Pagination/isolation test; successful operations record history |
 | Unified errors and correct HTTP codes | PASS | Shared handlers; validation/auth/conflict/provider/500 rollback checks |
 | String money; <=2 decimal places; Decimal; HALF_UP | PASS | 34 money/validation cases plus API malformed-money tests; OpenAPI string schema inspected |
-| PostgreSQL and versioned migrations | PASS | PostgreSQL 16 tests, initial upgrade and alembic check |
+| PostgreSQL and versioned migrations | PASS | PostgreSQL 16 tests; clean database upgrade/downgrade/upgrade and alembic check |
 | Compose starts both services and database | PASS | docker compose up --build -d --wait; three services healthy |
 | Environment configuration; no tracked local secrets | PASS | Environment example, random setup script, gitignore and secret-value scan |
-| pytest and lint with PostgreSQL | PASS | Standard tests container: 84 passed; Ruff lint/format clean |
+| pytest and lint with PostgreSQL | PASS | Standard image and clean Git archive: 84 passed; Ruff lint/format clean |
 | GitHub Actions configuration | PASS (local equivalent) | Workflow installs lock, lints, migrates and runs PostgreSQL tests |
 | Hosted GitHub Actions execution | NOT VERIFIED | Repository not published; requires the user's chosen remote |
 | README commands, diagram, decisions, limitations | PASS | Reviewed against successful commands and implementation |
