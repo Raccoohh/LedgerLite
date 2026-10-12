@@ -27,3 +27,19 @@
   Added PYTHONPATH=/app and pytest pythonpath so tests exercise current source.
 - Added opposite-direction transfers, purchase races and webhook/reconciliation races.
   First expanded run: 82 passed, 1 test failed from missing test imports; restored imports.
+
+## Integration, review and delivery
+- Full PostgreSQL run passed 83 tests; added concurrency/key/window coverage for the rate
+  limiter. Final standard image run passed 84 tests, Ruff lint/format and Alembic drift
+  check. One upstream TestClient deprecation warning remains.
+- Compose startup succeeded; wallet, provider and PostgreSQL healthy.
+- Real HTTP smoke passed deposits, duplicate callbacks, transfer replay/conflict,
+  purchase, missing-callback reconciliation, late callbacks and expiry; checked database
+  balances 52.72/5.00 and 507 credits.
+- Stopped only this project's provider; real wallet request returned structured 502
+  and left no deposit. Restored via the final application build.
+- Self-review covered lock ordering/FK compatibility, rollback, final-state guards,
+  Decimal parsing, auth, callback restriction and secrets. Documented the external-invoice
+  creation/DB commit gap instead of claiming a distributed transaction.
+- Added English README, requirement audit and truthful AI notes.
+- Local commits retain implementation and test/fix stages. No remote was configured.
