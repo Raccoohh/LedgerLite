@@ -246,11 +246,16 @@ docker compose exec wallet alembic check
 ```
 
 GitHub Actions installs the same locked dependencies, checks Ruff/formatting, upgrades and
-checks migrations, and runs pytest against PostgreSQL 16. The published pre-fix commit
-`bad674b` passed all checks and 84 tests:
-[verification run](https://github.com/Raccoohh/LedgerLite/actions/runs/38283614583).
-The post-audit fixes have been verified locally but have not been pushed; hosted CI for
-those changes is **not yet verified**. The badge above describes the published branch.
+checks migrations, and runs pytest against PostgreSQL 16. Publication status checked on
+13 October 2026:
+
+- GitHub `main` is at `bad674b`; its [CI run](https://github.com/Raccoohh/LedgerLite/actions/runs/38283614583)
+  completed successfully with 84 tests. The badge describes that published branch.
+- Local fix commit `594a723` passed 102 main tests and 35 independent audit checks.
+  It has not been pushed, so hosted CI for the fixes is **not yet verified**.
+- Final documentation edits are local. Publication requires the submitter's approval,
+  followed by checking GitHub Actions for the exact pushed commit. Commit history is
+  preserved without squashing.
 
 ## Engineering decisions and trade-offs
 
@@ -296,4 +301,5 @@ those changes is **not yet verified**. The badge above describes the published b
   verification evidence. The public repository still contains the pre-fix version until
   the locally verified changes are pushed with the developer's approval.
 - `AI_NOTES.md` separates the developer's confirmed contribution, AI implementation and
-  independent audit findings. Personal time was not tracked; no human coding/testing is claimed.
+  independent audit findings. The submitter estimates approximately 7 hours of personal
+  coordination and review; this was not timed, and no human coding or manual testing is claimed.

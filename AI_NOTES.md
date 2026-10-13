@@ -1,19 +1,18 @@
 # AI usage notes
 
-**AI work.** The developer identifies ChatGPT Astra High as the tool used for implementation
-and a separate Senior Code Review chat. AI produced the services, tests and documentation.
-This Codex workspace session reproduced and fixed the review findings using terminal,
-Docker/PostgreSQL, pytest and Ruff. The application itself calls no AI API.
+**AI tools and work.** The submitter identifies ChatGPT Astra High as the tool used for
+the initial implementation and independent Senior Code Review in a separate chat.
+The recorded Codex desktop session reproduced and fixed the findings, ran terminal,
+Docker/PostgreSQL, pytest and Ruff checks, and edited documentation. AI wrote the
+application and tests. The application itself calls no AI API.
 
-**Human contribution.** The developer supplied the assignment, organized AI-assisted work,
-reviewed results and monitored completion. They initiated the independent review, read its
-findings, and chose to fix F-01/F-02/F-03 while avoiding unnecessary refactoring. They
-confirmed they did not write code or manually run technical tests. No additional technical
-choices or manual validation are attributed to them.
+**Human decisions and contribution.** The submitter supplied the assignment, organized
+AI-assisted development, reviewed results and monitored completion. They initiated the
+independent review and chose to address F-01/F-02/F-03 without unnecessary refactoring.
+They did not write code, manually run technical tests or choose the implementation details.
 
-**Independent audit and three actual AI-code mistakes.** The supplied report recorded
-84 original tests passing and 32/35 independent checks passing. All three failures were
-reproduced before correction:
+**Three confirmed AI-code mistakes.** Independent audit checks found these defects;
+each failure was reproduced before correction, then verified by regression tests and HTTP:
 
 1. **F-01:** An unbounded history offset exceeded PostgreSQL bigint and returned 500.
    Added an upper bound of 9223372036854775807. Boundary/overflow tests now return 200/422
@@ -30,6 +29,6 @@ reproduced before correction:
 independent checks pass. Fresh Compose/PostgreSQL, migrations, Ruff and real HTTP checks
 also pass. Hosted CI for these local fixes awaits an authorized push.
 
-**Time.** The developer did not track personal time. Earlier session notes estimated
-20-25 minutes for the initial agent implementation; that excludes publication, independent
-review and this fix session. No reliable end-to-end duration or human hours are claimed.
+**Time.** The submitter estimates approximately 7 hours of personal involvement in
+coordination, reviewing results and the audit. This is an approximate recollection,
+not tracked coding/testing time. Total AI execution time was not reliably measured.
