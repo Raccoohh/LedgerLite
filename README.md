@@ -246,16 +246,17 @@ docker compose exec wallet alembic check
 ```
 
 GitHub Actions installs the same locked dependencies, checks Ruff/formatting, upgrades and
-checks migrations, and runs pytest against PostgreSQL 16. Publication status checked on
-13 October 2026:
+checks migrations, and runs pytest against PostgreSQL 16. Published verification record
+for 13 October 2026:
 
-- GitHub `main` is at `bad674b`; its [CI run](https://github.com/Raccoohh/LedgerLite/actions/runs/38283614583)
-  completed successfully with 84 tests. The badge describes that published branch.
-- Local fix commit `594a723` passed 102 main tests and 35 independent audit checks.
-  It has not been pushed, so hosted CI for the fixes is **not yet verified**.
-- Final documentation edits are local. Publication requires the submitter's approval,
-  followed by checking GitHub Actions for the exact pushed commit. Commit history is
-  preserved without squashing.
+- Fix commit `594a723` and documentation commit `56cab36` are published on `main`.
+- [CI run 38337603353](https://github.com/Raccoohh/LedgerLite/actions/runs/38337603353)
+  passed for `56cab36`: Ruff lint/format, migrations, schema drift check and
+  **102 PostgreSQL-backed tests** (1 existing deprecation warning).
+- The 35 independent audit checks and fresh Compose/HTTP verification passed locally;
+  they are separate evidence, not additional tests run by GitHub Actions.
+- Commit history is preserved without squashing. The badge links to the workflow's
+  current status; the run above records the verified application revision.
 
 ## Engineering decisions and trade-offs
 
@@ -298,8 +299,7 @@ checks migrations, and runs pytest against PostgreSQL 16. Publication status che
   monitoring or a complete double-entry accounting system. Do not expose the mock publicly.
 - The pinned Starlette TestClient emits an upstream HTTPX deprecation warning; tests pass.
 - All mandatory API behavior and both bonuses are implemented. See `ACCEPTANCE.md` for actual
-  verification evidence. The public repository still contains the pre-fix version until
-  the locally verified changes are pushed with the developer's approval.
+  verification evidence. The audited fixes are published and passed GitHub Actions.
 - `AI_NOTES.md` separates the developer's confirmed contribution, AI implementation and
   independent audit findings. The submitter estimates approximately 7 hours of personal
   coordination and review; this was not timed, and no human coding or manual testing is claimed.

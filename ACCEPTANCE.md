@@ -3,7 +3,7 @@
 The four-page assignment is the source of requirements. PASS means implemented and
 checked using the named evidence, not a claim that every possible input was tested.
 F-01, F-02 and F-03 from the independent review were reproduced before changes and fixed.
-This document distinguishes current local verification from the older published commit.
+Local checks and hosted CI for the published fixes are recorded separately below.
 
 | Requirement | Status | Evidence |
 | --- | --- | --- |
@@ -31,11 +31,11 @@ This document distinguishes current local verification from the older published 
 | pytest and lint with PostgreSQL | PASS | Built image on fresh database: 102 main tests (84 original + 18 new), 35 independent checks; Ruff lint/format clean |
 | GitHub Actions configuration | PASS | Workflow installs lock, lints, migrates and runs PostgreSQL tests |
 | Hosted GitHub Actions for pre-fix bad674b | PASS (historical) | [Run 38283614583](https://github.com/Raccoohh/LedgerLite/actions/runs/38283614583): lint, formatting, migrations and 84 tests |
-| Hosted GitHub Actions for post-review fixes | NOT VERIFIED | Local checks pass; no push authorized in the fix request |
+| Hosted GitHub Actions for post-review fixes | PASS | Published 56cab36, [run 38337603353](https://github.com/Raccoohh/LedgerLite/actions/runs/38337603353): Ruff lint/format, migrations, drift check, 102 tests passed (1 existing warning) |
 | README commands, diagram, decisions, limitations | PASS | Reviewed against successful commands and implementation |
-| AI_NOTES content and length | PASS (content) | Concise note with three reproduced/fixed defects, user-confirmed human role and explicitly unmeasured personal time; Markdown has no fixed pagination |
+| AI_NOTES content and length | PASS | Three reproduced/fixed defects, confirmed human role and approximate 7-hour personal involvement; one-page A4 layout checked at 11 pt |
 | Unsquashed local commits | PASS | Implementation, tests/fixes and documentation commits |
-| Repository access for reviewers | PASS (pre-fix version) | [Public repository](https://github.com/Raccoohh/LedgerLite); fixed commit still requires authorized push |
+| Repository access for reviewers | PASS | [Public repository](https://github.com/Raccoohh/LedgerLite); 594a723 and 56cab36 published on main without rewriting history |
 | Optional reconciliation | PASS | Old pending polling, concurrent webhook race, lost callback HTTP smoke |
 | Optional 30 POST/min/key; 429 Retry-After; webhook exempt | PASS | Malformed bodies on all three POST routes, mixed valid/invalid bodies, exactly-once counting, concurrency, key/window isolation and webhook exemption (F-02) |
 
@@ -64,3 +64,8 @@ Database-sensitive tests never use SQLite or mocked transactions.
   all five accounts' history/balance invariants still pass.
 - Audit helpers remain gitignored; all three defect regressions are in the committed main suite.
 - No new failures observed. Existing documented limitations and TestClient warning remain.
+- Authorized publication on 13 October 2026: GitHub confirms 56cab36 with parent 594a723.
+  Run 38337603353 completed successfully; pytest reported 102 passed, 1 warning in 8.00s.
+  All workflow steps passed. The 35 independent checks remain separate local evidence.
+- Post-push scan of seven commits and 63 distinct file blobs found no local secret values,
+  common credential patterns, tracked .env or temporary audit files (bounded scan).

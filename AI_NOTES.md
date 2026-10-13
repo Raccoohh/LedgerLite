@@ -27,7 +27,7 @@ each failure was reproduced before correction, then verified by regression tests
 
 **Verification.** All 84 original tests plus 18 new regressions pass (102 total); all 35
 independent checks pass. Fresh Compose/PostgreSQL, migrations, Ruff and real HTTP checks
-also pass. Hosted CI for these local fixes awaits an authorized push.
+also pass. Published commit `56cab36` passed GitHub Actions with 102 tests.
 
 **Time.** The submitter estimates approximately 7 hours of personal involvement in
 coordination, reviewing results and the audit. This is an approximate recollection,
